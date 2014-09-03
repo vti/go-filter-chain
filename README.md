@@ -6,6 +6,26 @@ Package filtechain implements a simple FilterChain pattern. The filters can be
 either anonymous functions or custom types, they just have to be wrapped in
 something that follows Executer interface.
 
+The filter can do something before and something after calling the next filter,
+but has to propagate the return value from the next filter, or if needed set its
+own.
+
+    chain.AddFilter(&filterchain.Inline{func(chain *filterchain.Chain) error {
+        // Do smth before
+        ...
+        // Call the next filter
+        err := chain.Next()
+        // Do smth after
+        ...
+        // Propagate the return value
+        return err
+    }})
+
+If the current filter does not call the next filter or returns the error, the
+chain stops. This is the correct way to terminate it.
+
+Complete program example:
+
     package main
 
     import (
@@ -113,6 +133,11 @@ type Inline struct {
 ```
 
 Inline is a type for adding filters as anonymous functions.
+
+    chain.AddFilter(&filterchain.Inline{func(chain *filterchain.Chain) error {
+        err := chain.Next()
+        return err
+    }})
 
 #### func (*Inline) Execute
 
