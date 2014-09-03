@@ -21,8 +21,9 @@ func New() *Chain {
     return &Chain{}
 }
 
-func (chain *Chain) AddFilter(filter Executer) {
+func (chain *Chain) AddFilter(filter Executer) *Chain {
     chain.filters = append(chain.filters, filter)
+    return chain
 }
 
 func (chain *Chain) Execute() error {

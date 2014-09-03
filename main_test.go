@@ -161,3 +161,25 @@ func TestCustomStruct(t *testing.T) {
 
 	assert.Equal(t, 1, filter.run)
 }
+
+func TestMethodChaining(t *testing.T) {
+	chain := Chain{}
+
+	results := []int{}
+
+	chain.AddFilter(&Inline{func(chain *Chain) error {
+		results = append(results, 1)
+		err := chain.Next()
+		results = append(results, -1)
+		return err
+	}}).AddFilter(&Inline{func(chain *Chain) error {
+		results = append(results, 2)
+		err := chain.Next()
+		results = append(results, -2)
+		return err
+	}})
+
+	chain.Execute()
+
+	assert.Equal(t, 4, len(results))
+}
