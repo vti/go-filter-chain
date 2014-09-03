@@ -1,27 +1,31 @@
 package filterchain
 
-type Filter interface {
-    Execute(*FilterChain) error
+type Executer interface {
+    Execute(*Chain) error
 }
 
-type FilterFunc struct {
-    handler func(*FilterChain) error
+type Func struct {
+    Handler func(*Chain) error
 }
 
-func (filter *FilterFunc) Execute(chain *FilterChain) error {
-    return filter.handler(chain)
+func (filter *Func) Execute(chain *Chain) error {
+    return filter.Handler(chain)
 }
 
-type FilterChain struct {
+type Chain struct {
     pos int
-    filters []Filter
+    filters []Executer
 }
 
-func (chain *FilterChain) AddFilter(filter Filter) {
+func New() *Chain {
+    return &Chain{}
+}
+
+func (chain *Chain) AddFilter(filter Executer) {
     chain.filters = append(chain.filters, filter)
 }
 
-func (chain *FilterChain) Execute() error {
+func (chain *Chain) Execute() error {
     pos := chain.pos
     if pos < len(chain.filters) {
         chain.pos++
@@ -33,10 +37,10 @@ func (chain *FilterChain) Execute() error {
     return nil
 }
 
-func (chain *FilterChain) Next() error {
+func (chain *Chain) Next() error {
     return chain.Execute()
 }
 
-func (chain *FilterChain) Rewind() {
+func (chain *Chain) Rewind() {
     chain.pos = 0
 }

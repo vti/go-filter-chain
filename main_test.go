@@ -7,23 +7,23 @@ import (
 )
 
 func TestRunFilters(t *testing.T) {
-	chain := FilterChain{}
+	chain := Chain{}
 
 	results := []int{}
 
-	chain.AddFilter(&FilterFunc{func(chain *FilterChain) error {
+	chain.AddFilter(&Func{func(chain *Chain) error {
 		results = append(results, 1)
 		err := chain.Next()
 		results = append(results, -1)
 		return err
 	}})
-	chain.AddFilter(&FilterFunc{func(chain *FilterChain) error {
+	chain.AddFilter(&Func{func(chain *Chain) error {
 		results = append(results, 2)
 		err := chain.Next()
 		results = append(results, -2)
 		return err
 	}})
-	chain.AddFilter(&FilterFunc{func(chain *FilterChain) error {
+	chain.AddFilter(&Func{func(chain *Chain) error {
 		results = append(results, 3)
 		err := chain.Next()
 		results = append(results, -3)
@@ -41,21 +41,21 @@ func TestRunFilters(t *testing.T) {
 }
 
 func TestStopRunningOnError(t *testing.T) {
-	chain := FilterChain{}
+	chain := Chain{}
 
 	results := []int{}
 
-	chain.AddFilter(&FilterFunc{func(chain *FilterChain) error {
+	chain.AddFilter(&Func{func(chain *Chain) error {
 		results = append(results, 1)
 		err := chain.Next()
 		results = append(results, -1)
 		return err
 	}})
-	chain.AddFilter(&FilterFunc{func(chain *FilterChain) error {
+	chain.AddFilter(&Func{func(chain *Chain) error {
 		results = append(results, 2)
 		return errors.New("Error!")
 	}})
-	chain.AddFilter(&FilterFunc{func(chain *FilterChain) error {
+	chain.AddFilter(&Func{func(chain *Chain) error {
 		results = append(results, 3)
 		err := chain.Next()
 		results = append(results, -3)
@@ -72,21 +72,21 @@ func TestStopRunningOnError(t *testing.T) {
 }
 
 func TestPropagateError(t *testing.T) {
-	chain := FilterChain{}
+	chain := Chain{}
 
 	results := []int{}
 
-	chain.AddFilter(&FilterFunc{func(chain *FilterChain) error {
+	chain.AddFilter(&Func{func(chain *Chain) error {
 		results = append(results, 1)
 		err := chain.Next()
 		results = append(results, -1)
 		return err
 	}})
-	chain.AddFilter(&FilterFunc{func(chain *FilterChain) error {
+	chain.AddFilter(&Func{func(chain *Chain) error {
 		results = append(results, 2)
 		return errors.New("Error!")
 	}})
-	chain.AddFilter(&FilterFunc{func(chain *FilterChain) error {
+	chain.AddFilter(&Func{func(chain *Chain) error {
 		results = append(results, 3)
 		err := chain.Next()
 		results = append(results, -3)
@@ -100,11 +100,11 @@ func TestPropagateError(t *testing.T) {
 }
 
 func TestNotRunAgain(t *testing.T) {
-	chain := FilterChain{}
+	chain := Chain{}
 
 	results := []int{}
 
-	chain.AddFilter(&FilterFunc{func(chain *FilterChain) error {
+	chain.AddFilter(&Func{func(chain *Chain) error {
 		results = append(results, 1)
 		chain.Next()
 		results = append(results, -1)
@@ -119,11 +119,11 @@ func TestNotRunAgain(t *testing.T) {
 }
 
 func TestRewindChain(t *testing.T) {
-	chain := FilterChain{}
+	chain := Chain{}
 
 	results := []int{}
 
-	chain.AddFilter(&FilterFunc{func(chain *FilterChain) error {
+	chain.AddFilter(&Func{func(chain *Chain) error {
 		results = append(results, 1)
 		chain.Next()
 		results = append(results, -1)
@@ -144,14 +144,14 @@ type CustomFilter struct {
 	run int
 }
 
-func (filter *CustomFilter) Execute(chain *FilterChain) error {
+func (filter *CustomFilter) Execute(chain *Chain) error {
 	filter.run++
 	err := chain.Next()
 	return err
 }
 
 func TestCustomStruct(t *testing.T) {
-	chain := FilterChain{}
+	chain := Chain{}
 
 	filter := &CustomFilter{}
 
