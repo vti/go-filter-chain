@@ -19,7 +19,7 @@ func main() {
 	chain := filterchain.New()
 
 	// Specifying filter as anon function
-	chain.AddFilter(&filterchain.Func{func(chain *filterchain.Chain) error {
+	chain.AddFilter(&filterchain.Inline{func(chain *filterchain.Chain) error {
 		fmt.Println(1)
 		err := chain.Next()
 		fmt.Println(-1)
@@ -30,7 +30,7 @@ func main() {
 	// a separate package for example
 	chain.AddFilter(&CustomFilter{})
 
-	chain.AddFilter(&filterchain.Func{func(chain *filterchain.Chain) error {
+	chain.AddFilter(&filterchain.Inline{func(chain *filterchain.Chain) error {
 		fmt.Println(3)
 		err := chain.Next()
 		fmt.Println(-3)

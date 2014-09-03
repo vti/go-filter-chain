@@ -11,19 +11,19 @@ func TestRunFilters(t *testing.T) {
 
 	results := []int{}
 
-	chain.AddFilter(&Func{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain) error {
 		results = append(results, 1)
 		err := chain.Next()
 		results = append(results, -1)
 		return err
 	}})
-	chain.AddFilter(&Func{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain) error {
 		results = append(results, 2)
 		err := chain.Next()
 		results = append(results, -2)
 		return err
 	}})
-	chain.AddFilter(&Func{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain) error {
 		results = append(results, 3)
 		err := chain.Next()
 		results = append(results, -3)
@@ -45,17 +45,17 @@ func TestStopRunningOnError(t *testing.T) {
 
 	results := []int{}
 
-	chain.AddFilter(&Func{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain) error {
 		results = append(results, 1)
 		err := chain.Next()
 		results = append(results, -1)
 		return err
 	}})
-	chain.AddFilter(&Func{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain) error {
 		results = append(results, 2)
 		return errors.New("Error!")
 	}})
-	chain.AddFilter(&Func{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain) error {
 		results = append(results, 3)
 		err := chain.Next()
 		results = append(results, -3)
@@ -76,17 +76,17 @@ func TestPropagateError(t *testing.T) {
 
 	results := []int{}
 
-	chain.AddFilter(&Func{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain) error {
 		results = append(results, 1)
 		err := chain.Next()
 		results = append(results, -1)
 		return err
 	}})
-	chain.AddFilter(&Func{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain) error {
 		results = append(results, 2)
 		return errors.New("Error!")
 	}})
-	chain.AddFilter(&Func{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain) error {
 		results = append(results, 3)
 		err := chain.Next()
 		results = append(results, -3)
@@ -104,7 +104,7 @@ func TestNotRunAgain(t *testing.T) {
 
 	results := []int{}
 
-	chain.AddFilter(&Func{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain) error {
 		results = append(results, 1)
 		chain.Next()
 		results = append(results, -1)
@@ -123,7 +123,7 @@ func TestRewindChain(t *testing.T) {
 
 	results := []int{}
 
-	chain.AddFilter(&Func{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain) error {
 		results = append(results, 1)
 		chain.Next()
 		results = append(results, -1)

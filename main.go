@@ -4,11 +4,11 @@ type Executer interface {
     Execute(*Chain) error
 }
 
-type Func struct {
+type Inline struct {
     Handler func(*Chain) error
 }
 
-func (filter *Func) Execute(chain *Chain) error {
+func (filter *Inline) Execute(chain *Chain) error {
     return filter.Handler(chain)
 }
 
