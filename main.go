@@ -1,19 +1,23 @@
 package filterchain
 
-type Filter struct {
+type Filter interface {
+    Execute(*FilterChain) error
+}
+
+type FilterFunc struct {
     handler func(*FilterChain) error
 }
 
-func (filter *Filter) Execute(chain *FilterChain) error {
+func (filter *FilterFunc) Execute(chain *FilterChain) error {
     return filter.handler(chain)
 }
 
 type FilterChain struct {
     pos int
-    filters []*Filter
+    filters []Filter
 }
 
-func (chain *FilterChain) AddFilter(filter *Filter) {
+func (chain *FilterChain) AddFilter(filter Filter) {
     chain.filters = append(chain.filters, filter)
 }
 
