@@ -1,4 +1,10 @@
-A simple FilterChain pattern implementation in Go.
+# filterchain
+--
+    import "github.com/vti/go-filter-chain"
+
+Package filtechain implements a simple FilterChain pattern. The filters can be
+either anonymous functions or custom types, they just have to be wrapped in
+something that follows Executer interface.
 
     package main
 
@@ -42,16 +48,75 @@ A simple FilterChain pattern implementation in Go.
         chain.Execute()
     }
 
-Run a program from `eg/` directory:
+## Usage
 
-    go run eg/main.go
+#### type Chain
 
-It will print:
+```go
+type Chain struct {
+}
+```
 
-    1
-    2
-    3
-    -3
-    -2
-    -1
+Chain is the main type.
 
+#### func  New
+
+```go
+func New() *Chain
+```
+New creates new chain.
+
+#### func (*Chain) AddFilter
+
+```go
+func (chain *Chain) AddFilter(filter Executer) *Chain
+```
+AddFilter adds a filter to the chain.
+
+#### func (*Chain) Execute
+
+```go
+func (chain *Chain) Execute() error
+```
+Execute starts executing filters in the chain.
+
+#### func (*Chain) Next
+
+```go
+func (chain *Chain) Next() error
+```
+Next executes the next filter in the chain.
+
+#### func (*Chain) Rewind
+
+```go
+func (chain *Chain) Rewind()
+```
+Rewind rewinds the chain, so it can be run again.
+
+#### type Executer
+
+```go
+type Executer interface {
+	Execute(*Chain) error
+}
+```
+
+Executer is an interface for filters.
+
+#### type Inline
+
+```go
+type Inline struct {
+	Handler func(*Chain) error
+}
+```
+
+Inline is a type for adding filters as anonymous functions.
+
+#### func (*Inline) Execute
+
+```go
+func (filter *Inline) Execute(chain *Chain) error
+```
+Execute runs the inlined handler.
