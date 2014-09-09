@@ -11,21 +11,21 @@ func TestRunFilters(t *testing.T) {
 
 	results := []int{}
 
-	chain.AddFilter(&Inline{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain, args ...interface{}) error {
 		results = append(results, 1)
-		err := chain.Next()
+		err := chain.Next(args...)
 		results = append(results, -1)
 		return err
 	}})
-	chain.AddFilter(&Inline{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain, args ...interface{}) error {
 		results = append(results, 2)
-		err := chain.Next()
+		err := chain.Next(args...)
 		results = append(results, -2)
 		return err
 	}})
-	chain.AddFilter(&Inline{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain, args ...interface{}) error {
 		results = append(results, 3)
-		err := chain.Next()
+		err := chain.Next(args...)
 		results = append(results, -3)
 		return err
 	}})
@@ -45,17 +45,17 @@ func TestStopRunningOnError(t *testing.T) {
 
 	results := []int{}
 
-	chain.AddFilter(&Inline{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain, args ...interface{}) error {
 		results = append(results, 1)
 		err := chain.Next()
 		results = append(results, -1)
 		return err
 	}})
-	chain.AddFilter(&Inline{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain, args ...interface{}) error {
 		results = append(results, 2)
 		return errors.New("Error!")
 	}})
-	chain.AddFilter(&Inline{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain, args ...interface{}) error {
 		results = append(results, 3)
 		err := chain.Next()
 		results = append(results, -3)
@@ -76,17 +76,17 @@ func TestPropagateError(t *testing.T) {
 
 	results := []int{}
 
-	chain.AddFilter(&Inline{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain, args ...interface{}) error {
 		results = append(results, 1)
 		err := chain.Next()
 		results = append(results, -1)
 		return err
 	}})
-	chain.AddFilter(&Inline{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain, args ...interface{}) error {
 		results = append(results, 2)
 		return errors.New("Error!")
 	}})
-	chain.AddFilter(&Inline{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain, args ...interface{}) error {
 		results = append(results, 3)
 		err := chain.Next()
 		results = append(results, -3)
@@ -104,7 +104,7 @@ func TestNotRunAgain(t *testing.T) {
 
 	results := []int{}
 
-	chain.AddFilter(&Inline{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain, args ...interface{}) error {
 		results = append(results, 1)
 		chain.Next()
 		results = append(results, -1)
@@ -123,7 +123,7 @@ func TestRewindChain(t *testing.T) {
 
 	results := []int{}
 
-	chain.AddFilter(&Inline{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain, args ...interface{}) error {
 		results = append(results, 1)
 		chain.Next()
 		results = append(results, -1)
@@ -144,9 +144,9 @@ type CustomFilter struct {
 	run int
 }
 
-func (filter *CustomFilter) Execute(chain *Chain) error {
+func (filter *CustomFilter) Execute(chain *Chain, args ...interface{}) error {
 	filter.run++
-	err := chain.Next()
+	err := chain.Next(args...)
 	return err
 }
 
@@ -167,12 +167,12 @@ func TestMethodChaining(t *testing.T) {
 
 	results := []int{}
 
-	chain.AddFilter(&Inline{func(chain *Chain) error {
+	chain.AddFilter(&Inline{func(chain *Chain, args ...interface{}) error {
 		results = append(results, 1)
 		err := chain.Next()
 		results = append(results, -1)
 		return err
-	}}).AddFilter(&Inline{func(chain *Chain) error {
+	}}).AddFilter(&Inline{func(chain *Chain, args ...interface{}) error {
 		results = append(results, 2)
 		err := chain.Next()
 		results = append(results, -2)
@@ -182,4 +182,30 @@ func TestMethodChaining(t *testing.T) {
 	chain.Execute()
 
 	assert.Equal(t, 4, len(results))
+}
+
+func TestParamsPassing(t *testing.T) {
+	chain := Chain{}
+
+	results := []string{}
+
+	chain.AddFilter(&Inline{func(chain *Chain, args ...interface{}) error {
+        foo := args[0].(string)
+        foo = foo + "bar"
+		err := chain.Next(foo)
+		results = append(results, foo)
+		return err
+	}}).AddFilter(&Inline{func(chain *Chain, args ...interface{}) error {
+        foo := args[0].(string)
+        foo = foo + "baz"
+		err := chain.Next(foo)
+		results = append(results, foo)
+		return err
+	}})
+
+	chain.Execute("foo")
+
+	assert.Equal(t, 2, len(results))
+	assert.Equal(t, "foobarbaz", results[0])
+	assert.Equal(t, "foobar", results[1])
 }

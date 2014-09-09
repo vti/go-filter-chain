@@ -6,11 +6,11 @@
 // filter, but has to propagate the return value from the next filter, or if
 // needed set its own.
 //
-//    chain.AddFilter(&filterchain.Inline{func(chain *filterchain.Chain) error {
+//    chain.AddFilter(&filterchain.Inline{func(chain *filterchain.Chain, args ...interface{}) error {
 //        // Do smth before
 //        ...
 //        // Call the next filter
-//        err := chain.Next()
+//        err := chain.Next(args)
 //        // Do smth after
 //        ...
 //        // Propagate the return value
@@ -32,9 +32,9 @@
 //    type CustomFilter struct {
 //    }
 //
-//    func (filter *CustomFilter) Execute(chain *filterchain.Chain) error {
+//    func (filter *CustomFilter) Execute(chain *filterchain.Chain, args ...interface{}) error {
 //        fmt.Println(2)
-//        err := chain.Next()
+//        err := chain.Next(args)
 //        fmt.Println(-2)
 //        return err
 //    }
@@ -43,9 +43,9 @@
 //        chain := filterchain.New()
 //
 //        // Specifying filter as anon function
-//        chain.AddFilter(&filterchain.Inline{func(chain *filterchain.Chain) error {
+//        chain.AddFilter(&filterchain.Inline{func(chain *filterchain.Chain, args ...interface{}) error {
 //            fmt.Println(1)
-//            err := chain.Next()
+//            err := chain.Next(args)
 //            fmt.Println(-1)
 //            return err
 //        }})
@@ -54,9 +54,9 @@
 //        // a separate package for example
 //        chain.AddFilter(&CustomFilter{})
 //
-//        chain.AddFilter(&filterchain.Inline{func(chain *filterchain.Chain) error {
+//        chain.AddFilter(&filterchain.Inline{func(chain *filterchain.Chain, args ...interface{}) error {
 //            fmt.Println(3)
-//            err := chain.Next()
+//            err := chain.Next(args)
 //            fmt.Println(-3)
 //            return err
 //        }})
@@ -74,21 +74,21 @@ package filterchain
 
 // Executer is an interface for filters.
 type Executer interface {
-    Execute(*Chain) error
+    Execute(*Chain, ...interface{}) error
 }
 
 // Inline is a type for adding filters as anonymous functions.
-//    chain.AddFilter(&filterchain.Inline{func(chain *filterchain.Chain) error {
-//        err := chain.Next()
+//    chain.AddFilter(&filterchain.Inline{func(chain *filterchain.Chain, args ...interface{}) error {
+//        err := chain.Next(args)
 //        return err
 //    }})
 type Inline struct {
-    Handler func(*Chain) error
+    Handler func(*Chain, ...interface{}) error
 }
 
 // Execute runs the inlined handler.
-func (filter *Inline) Execute(chain *Chain) error {
-    return filter.Handler(chain)
+func (filter *Inline) Execute(chain *Chain, args ...interface{}) error {
+    return filter.Handler(chain, args...)
 }
 
 // Chain is the main type.
@@ -109,11 +109,11 @@ func (chain *Chain) AddFilter(filter Executer) *Chain {
 }
 
 // Execute starts executing filters in the chain.
-func (chain *Chain) Execute() error {
+func (chain *Chain) Execute(args ...interface{}) error {
     pos := chain.pos
     if pos < len(chain.filters) {
         chain.pos++
-        if err := chain.filters[pos].Execute(chain); err != nil {
+        if err := chain.filters[pos].Execute(chain, args...); err != nil {
             return err
         }
     }
@@ -122,8 +122,8 @@ func (chain *Chain) Execute() error {
 }
 
 // Next executes the next filter in the chain.
-func (chain *Chain) Next() error {
-    return chain.Execute()
+func (chain *Chain) Next(args ... interface{}) error {
+    return chain.Execute(args...)
 }
 
 // Rewind rewinds the chain, so it can be run again.
