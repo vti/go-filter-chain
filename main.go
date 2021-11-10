@@ -72,9 +72,17 @@
 //    }
 package filterchain
 
+
 // Executer is an interface for filters.
 type Executer interface {
     Execute(*Chain, ...interface{}) error
+}
+
+//maps executer with a purtivular string literal
+var linkMap map[string]Executer 
+
+func init() {
+
 }
 
 // Inline is a type for adding filters as anonymous functions.
@@ -86,12 +94,17 @@ type Inline struct {
     Handler func(*Chain, ...interface{}) error
 }
 
+//Registers a executer with a string literal
+func register(id string, functionExecutor Executer) {
+	linkMap[id] = functionExecutor
+}
+
 // Execute runs the inlined handler.
 func (filter *Inline) Execute(chain *Chain, args ...interface{}) error {
     return filter.Handler(chain, args...)
 }
 
-// Chain is the main type.
+// Structure of the chain
 type Chain struct {
     pos int
     filters []Executer
@@ -130,3 +143,5 @@ func (chain *Chain) Next(args ... interface{}) error {
 func (chain *Chain) Rewind() {
     chain.pos = 0
 }
+
+
